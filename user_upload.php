@@ -1,55 +1,5 @@
 <?php
 
-  class UserDatabase {
-
-    private $mysqli;
-
-    function __construct($mysqlUsername, $mysqlPassword, $mysqlHost ) {
-      $this->mysqli = new mysqli( $mysqlHost, $mysqlUsername, $mysqlPassword);
-
-      if ($this->mysqli->connect_error) {
-        echo "Error connecting to MySQL: " . $this->mysqli->connect_error . "\n";
-        exit(1);
-      }
-    }
-    
-    // Create Table function
-    function createTable() {
-      $query = "CREATE TABLE IF NOT EXISTS users (
-                  id INT AUTO_INCREMENT PRIMARY KEY,
-                  name VARCHAR(255) NOT NULL,
-                  surname VARCHAR(255) NOT NULL,
-                  email VARCHAR(255) NOT NULL UNIQUE
-                )";
-
-
-      if ($this->mysqli->query($query) === TRUE) {
-        echo "MySQL users table created successfully.\n";
-      } else {
-        echo "Error creating MySQL users table: " . $this->mysqli->error . "\n";
-        exit(1);
-      }
-    }
-
-     // Create Table function
-    function insertData() {
-      $query = "CREATE TABLE IF NOT EXISTS users (
-                  id INT AUTO_INCREMENT PRIMARY KEY,
-                  name VARCHAR(255) NOT NULL,
-                  surname VARCHAR(255) NOT NULL,
-                  email VARCHAR(255) NOT NULL UNIQUE
-                )";
-
-
-      if ($this->mysqli->query($query) === TRUE) {
-        echo "MySQL users table created successfully.\n";
-      } else {
-        echo "Error creating MySQL users table: " . $this->mysqli->error . "\n";
-        exit(1);
-      }
-    }
-  }
-
   function displayHelp() {
     echo "Usage:\n";
 
@@ -102,6 +52,53 @@
       array_shift($csvData);
     }
     return $csvData;
+  }
+
+  function mysqlConnect($mysqlUsername, $mysqlPassword, $mysqlHost ) {
+    $mysqli = new mysqli( $mysqlHost, $mysqlUsername, $mysqlPassword);
+
+    if ($mysqli->connect_error) {
+      echo "Error connecting to MySQL: " . $mysqli->connect_error . "\n";
+      exit(1);
+    }
+
+    return $mysqli;
+  }
+
+  // Create Table function
+  function createTable($mysqli) {
+    $query = "CREATE TABLE IF NOT EXISTS users (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                name VARCHAR(255) NOT NULL,
+                surname VARCHAR(255) NOT NULL,
+                email VARCHAR(255) NOT NULL UNIQUE
+              )";
+
+
+    if ($mysqli->query($query) === TRUE) {
+      echo "MySQL users table created successfully.\n";
+    } else {
+      echo "Error creating MySQL users table: " . $mysqli->error . "\n";
+      exit(1);
+    }
+  }
+
+  // Create Table function
+  function insertData($mysqli, $csvData) {
+    foreach ($csvData as $row) {
+      $name = $mysqli->real_escape_string($row[0]); // Assuming the first column is 'name'
+      $surname = $mysqli->real_escape_string($row[1]); // Assuming the second column is 'surname'
+      $email = $mysqli->real_escape_string($row[2]); // Assuming the third column is 'email'
+
+      $query = "INSERT INTO users (name, surname, email) VALUES ('$name', '$surname', '$email')";
+
+      if ($mysqli->query($query) !== TRUE) {
+          echo "Error inserting data into MySQL users table: " . $mysqli->error . "\n";
+          exit(1);
+      }
+    }
+
+    echo "Data inserted into MySQL users table successfully.\n";
   }
 
   // ***************************************
@@ -158,14 +155,18 @@
 
   $csvData = readCSVtoArray($csvFileName);
 
-  $userDB = new UserDatabase($mysqlUsername, $mysqlPassword, $mysqlHost);
+  $mysqli = mysqlConnect($mysqlUsername, $mysqlPassword, $mysqlHost);
 
   if ($isCreateTable) {
-    $userDB->createTable();
+    createTable($mysqli);
   }
 
   if (!$isDryRun) {
-    $userDB->insertData($mysqli, $csvData);
+    insertData($mysqli, $csvData);
+  } else {
+    echo "Dry run mode activated. Database won't be altered.\n";
   }
+
+  $mysqli->close();
 
 ?>
