@@ -86,9 +86,15 @@
   // Create Table function
   function insertData($mysqli, $csvData) {
     foreach ($csvData as $row) {
-      $name = $mysqli->real_escape_string($row[0]); // Assuming the first column is 'name'
-      $surname = $mysqli->real_escape_string($row[1]); // Assuming the second column is 'surname'
-      $email = $mysqli->real_escape_string($row[2]); // Assuming the third column is 'email'
+      $name = $mysqli->real_escape_string(ucfirst($row[0])); // Assuming the first column is 'name'
+      $surname = $mysqli->real_escape_string(ucfirst($row[1])); // Assuming the second column is 'surname'
+      $email = $mysqli->real_escape_string(strtolower($row[2])); // Assuming the third column is 'email'
+
+      // Validate Email
+      if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        echo "Error: Invalid email format for '$email'. No insert made to the database.\n";
+        continue; // Skip to the next iteration
+      }
 
       $query = "INSERT INTO users (name, surname, email) VALUES ('$name', '$surname', '$email')";
 
@@ -169,4 +175,3 @@
 
   $mysqli->close();
 
-?>
