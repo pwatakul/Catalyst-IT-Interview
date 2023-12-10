@@ -1,5 +1,55 @@
 <?php
 
+  class UserDatabase {
+
+    private $mysqli;
+
+    function __construct($mysqlUsername, $mysqlPassword, $mysqlHost ) {
+      $this->mysqli = new mysqli( $mysqlHost, $mysqlUsername, $mysqlPassword);
+
+      if ($this->mysqli->connect_error) {
+        echo "Error connecting to MySQL: " . $this->mysqli->connect_error . "\n";
+        exit(1);
+      }
+    }
+    
+    // Create Table function
+    function createTable() {
+      $query = "CREATE TABLE IF NOT EXISTS users (
+                  id INT AUTO_INCREMENT PRIMARY KEY,
+                  name VARCHAR(255) NOT NULL,
+                  surname VARCHAR(255) NOT NULL,
+                  email VARCHAR(255) NOT NULL UNIQUE
+                )";
+
+
+      if ($this->mysqli->query($query) === TRUE) {
+        echo "MySQL users table created successfully.\n";
+      } else {
+        echo "Error creating MySQL users table: " . $this->mysqli->error . "\n";
+        exit(1);
+      }
+    }
+
+     // Create Table function
+    function insertData() {
+      $query = "CREATE TABLE IF NOT EXISTS users (
+                  id INT AUTO_INCREMENT PRIMARY KEY,
+                  name VARCHAR(255) NOT NULL,
+                  surname VARCHAR(255) NOT NULL,
+                  email VARCHAR(255) NOT NULL UNIQUE
+                )";
+
+
+      if ($this->mysqli->query($query) === TRUE) {
+        echo "MySQL users table created successfully.\n";
+      } else {
+        echo "Error creating MySQL users table: " . $this->mysqli->error . "\n";
+        exit(1);
+      }
+    }
+  }
+
   function displayHelp() {
     echo "Usage:\n";
 
@@ -42,6 +92,18 @@
       }
     }
   }
+
+  function readCSVtoArray($csvFileName) {
+    // Read CSV file into array
+    $csvData = array_map('str_getcsv', file($csvFileName));
+
+    // Remove header row if it exists
+    if (count($csvData) > 0 && array_keys($csvData[0]) === [0, 1, 2]) {
+      array_shift($csvData);
+    }
+    return $csvData;
+  }
+
   // ***************************************
   // Script Start Here
   // ***************************************
@@ -92,5 +154,18 @@
 
   $mysqlHost = $options['h'];
   echo "MySQL Host: $mysqlHost\n";
+
+
+  $csvData = readCSVtoArray($csvFileName);
+
+  $userDB = new UserDatabase($mysqlUsername, $mysqlPassword, $mysqlHost);
+
+  if ($isCreateTable) {
+    $userDB->createTable();
+  }
+
+  if (!$isDryRun) {
+    $userDB->insertData($mysqli, $csvData);
+  }
 
 ?>
