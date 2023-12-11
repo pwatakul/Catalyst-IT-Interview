@@ -1,18 +1,6 @@
+
 <?php
-
-  // Function to display manual of script
-
-  // • -u – MySQL username (Required username value)
-  // • -p – MySQL password  (Required password value)
-  // • -h – MySQL host  (Required Host name)
-
-  // • --file [csv file name] – this is the name of the CSV to be parsed
-  // • --create_table – this will cause the MySQL users table to be built (and no further
-  // • action will be taken)
-  // • --dry_run – this will be used with the --file directive in case we want to run the script but not
-  // insert into the DB. All other functions will be executed, but the database won't be altered
-  // • --help – which will output the above list of directives with details.
-
+  // <!-- Implemented By Patawat Watakul (Patt) For Job Interview  -->
   function displayHelp() {
     echo "Usage:\n";
 
@@ -35,12 +23,12 @@
   // Function to validate CSV File (Validate File exist and Also validate file name)
   function validateCsvFile($fileName) {
     if (!file_exists($fileName)) {
-      echo "Error: The specified CSV file '$fileName' does not exist.\n";
+      echo "\033[01;31m Error: The specified CSV file '$fileName' does not exist.\033[0m\n";
       exit(1);
     }
 
     if (!is_readable($fileName) || pathinfo($fileName, PATHINFO_EXTENSION) !== 'csv') {
-      echo "Error: The specified file '$fileName' is not a valid CSV file.\n";
+      echo "\033[01;31mError: The specified file '$fileName' is not a valid CSV file.\033[0m\n";
       exit(1);
     }
   }
@@ -81,7 +69,7 @@
       $mysqli = new mysqli( $mysqlHost, $mysqlUsername, $mysqlPassword);
 
       if ($mysqli->connect_error) {
-        echo "Error connecting to MySQL: " . $mysqli->connect_error . "\n";
+        echo "\033[01;31mError connecting to MySQL: " . $mysqli->connect_error . "\033[0m\n";
         exit(1);
       }
       echo "Connect to server: \033[92msuccessful \033[0m\n";
@@ -139,8 +127,6 @@
         echo "\033[31m Warning: Inserting data into MySQL users table: " . $e->getMessage() . "\033[0m\n";
       }
     }
-
-   
   }
 
   // Create Database
@@ -151,15 +137,15 @@
         echo "Database: $dbName created \033[92msuccessful \033[0m\n";
       }
     } catch (Exception $e) {
-      echo "Error creating database: " . $e->getMessage();
+      echo "\033[31mError creating database: " . $e->getMessage() . "\033[0m\n";
       exit(1);
     }
-
   }
 
   // ***************************************
   // Script Start Here
   // ***************************************
+  echo "Script has been started!!!!\n\n";
 
   $shortopts = "u:p:h:";
 
@@ -200,7 +186,6 @@
 
   // Get username string
   $mysqlUsername = isset($options['u']) ? $options['u'] : "";
-  // \e[42mGreen
   echo "MySQL Username: \033[42m$mysqlUsername\033[0m\n";
 
   // Get password string
@@ -218,14 +203,15 @@
 
   $mysqli = mysqlConnect($mysqlUsername, $mysqlPassword, $mysqlHost);
 
-
   // Create new database
   // Set DB Name (Default --> myDB)
   $dbName = isset($options['dbName']) ? $options['dbName'] : "myDB";
 
   createDatabase($mysqli, $dbName);
   
+  // Select Database Name
   $mysqli->query("USE $dbName");
+
   // Make a new user table if requested
   if ($isCreateTable) {
     createTable($mysqli);
